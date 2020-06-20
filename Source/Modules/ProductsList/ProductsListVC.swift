@@ -24,7 +24,9 @@ class ProductsListVC: UIViewController {
   
   private func setupViews() {
     productsList = UICollectionView(frame: .zero, collectionViewLayout: DoubleColumnLayout())
+    productsList.backgroundColor = .systemBackground
     productsList.dataSource = self
+    productsList.delegate = self
     productsList.register(ProductsListCVC.self, forCellWithReuseIdentifier: ProductsListCVC.reuseID)
     view.addSubview(productsList)
     productsList.snp.makeConstraints { (maker) in
@@ -45,7 +47,7 @@ class ProductsListVC: UIViewController {
   }
 }
 
-extension ProductsListVC: UICollectionViewDataSource {
+extension ProductsListVC: UICollectionViewDataSource, UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     products.count
   }
@@ -56,5 +58,10 @@ extension ProductsListVC: UICollectionViewDataSource {
     }
     cell.onBind(products[indexPath.item])
     return cell
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    collectionView.deselectItem(at: indexPath, animated: true)
+    show(ProductsDetailsVC(products[indexPath.item]), sender: self)
   }
 }

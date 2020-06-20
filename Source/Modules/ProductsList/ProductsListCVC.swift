@@ -30,9 +30,6 @@ class ProductsListCVC: UICollectionViewCell {
   }
   
   private func setupViews() {
-    contentView.snp.makeConstraints { (maker) in
-      maker.edges.equalToSuperview()
-    }
     
     imageView = UIImageView()
     imageView.contentMode = .scaleAspectFill
