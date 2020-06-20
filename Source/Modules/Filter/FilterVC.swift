@@ -17,10 +17,7 @@ protocol IFilterVM {
   
   func categoryName(for index: Int) -> String
   func filter(categoryIndex: Int?, minPrice: Decimal?, maxPrice: Decimal?)
-}
-
-protocol IFilterVC {
-  
+  func clearFilters()
 }
 
 class FilterVC: BaseVC {
@@ -55,15 +52,34 @@ class FilterVC: BaseVC {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    setupKeyboardListener()
     setupViews()
+  }
+  
+  private func setupKeyboardListener() {
+    let center = NotificationCenter.default
+    center.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+    center.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+  }
+  
+  @objc private func keyboardWillShow(_ notification: Notification) {
+    let userInfo = notification.userInfo
+    let frame  = userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as! CGRect
+    let contentInset = UIEdgeInsets(top: 0, left: 0, bottom: frame.height, right: 0)
+    categoriesTable.contentInset = contentInset
+  }
+  
+  @objc private func keyboardWillHide(_ notification: Notification) {
+    categoriesTable.contentInset = UIEdgeInsets.zero
   }
   
   private func setupViews() {
     view.backgroundColor = .systemBackground
+    selectedCategoryIndex = vm.selectedCategoryIndex
     
     let closeButton = UIButton()
-    closeButton.setTitle("Close", for: .normal)
+    closeButton.setTitle("Clear", for: .normal)
+    closeButton.setTitleColor(view.tintColor, for: .normal)
     closeButton.addTarget(self, action: #selector(onClose), for: .touchUpInside)
     view.addSubview(closeButton)
     closeButton.snp.makeConstraints { (maker) in
@@ -81,7 +97,7 @@ class FilterVC: BaseVC {
     
     let priceLabel = UILabel()
     priceLabel.text = "Price"
-    priceLabel.font = .systemFont(ofSize: 20)
+    priceLabel.font = .boldSystemFont(ofSize: 20)
     view.addSubview(priceLabel)
     priceLabel.snp.makeConstraints { (maker) in
       maker.top.equalTo(closeButton.snp.bottom).offset(Constants.offset)
@@ -117,7 +133,7 @@ class FilterVC: BaseVC {
     
     let categoriesLabel = UILabel()
     categoriesLabel.text = "Categories"
-    categoriesLabel.font = .systemFont(ofSize: 20)
+    categoriesLabel.font = .boldSystemFont(ofSize: 20)
     view.addSubview(categoriesLabel)
     categoriesLabel.snp.makeConstraints { (maker) in
       maker.top.equalTo(priceStack.snp.bottom).offset(Constants.offset)
@@ -128,6 +144,8 @@ class FilterVC: BaseVC {
     categoriesTable.register(FilterCategoryTVC.self, forCellReuseIdentifier: FilterCategoryTVC.reuseID)
     categoriesTable.dataSource = self
     categoriesTable.delegate = self
+    categoriesTable.separatorStyle = .none
+    categoriesTable.rowHeight = 50
     view.addSubview(categoriesTable)
     categoriesTable.snp.makeConstraints { (maker) in
       maker.top.equalTo(categoriesLabel.snp.bottom).offset(Constants.offset)
@@ -137,6 +155,7 @@ class FilterVC: BaseVC {
   }
   
   @objc private func onClose() {
+    vm.clearFilters()
     dismiss(animated: true, completion: nil)
   }
   
@@ -156,13 +175,19 @@ extension FilterVC: UITableViewDataSource, UITableViewDelegate {
       fatalError()
     }
     
-    cell.onBind(vm.categoryName(for: indexPath.item))
+    cell.onBind(vm.categoryName(for: indexPath.item), selected: indexPath.item == selectedCategoryIndex, isOdd: indexPath.item % 2 == 0)
     
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
+    var updateCells: [IndexPath] = []
+    if let selected = selectedCategoryIndex {
+      updateCells.append(IndexPath(item: selected, section: 0))
+    }
+    updateCells.append(indexPath)
     selectedCategoryIndex = indexPath.item
+    tableView.reloadRows(at: updateCells, with: .automatic)
   }
 }

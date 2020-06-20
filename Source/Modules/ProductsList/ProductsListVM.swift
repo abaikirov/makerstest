@@ -10,8 +10,10 @@ import Foundation
 
 protocol IProductsListVM {
   var productsListVC: IProductsListVC? { get set }
+  var productsCount: Int { get }
   
   func fetchProducts()
+  func product(for index: Int) -> Product
 }
 
 class ProductsListVM: IProductsListVM, IFilterVM {
@@ -29,15 +31,23 @@ class ProductsListVM: IProductsListVM, IFilterVM {
     Array(categories)[index]
   }
   
+  private var categories: Set<String> = []
+  
+  var productsCount: Int {
+    filteredProducts.count
+  }
+  
   private var products: [Product] = []
   
   private var filteredProducts: [Product] = [] {
     didSet {
-      productsListVC?.show(products: filteredProducts)
+      productsListVC?.showProducts()
     }
   }
   
-  private var categories: Set<String> = []
+  func product(for index: Int) -> Product {
+    filteredProducts[index]
+  }
   
   func fetchProducts() {
     let networkManager: INetworkManager = NetworkManager()
@@ -48,11 +58,18 @@ class ProductsListVM: IProductsListVM, IFilterVM {
         for categoryName in products.map({ $0.category }) {
           self.categories.insert(categoryName)
         }
-        self.productsListVC?.show(products: products)
+        self.filteredProducts = products
       case .failure(let error):
         self.productsListVC?.show(error: error.localizedDescription)
       }
     }
+  }
+  
+  func clearFilters() {
+    selectedCategoryIndex = nil
+    minPrice = nil
+    maxPrice = nil
+    filteredProducts = products
   }
   
   func filter(categoryIndex: Int?, minPrice: Decimal?, maxPrice: Decimal?) {

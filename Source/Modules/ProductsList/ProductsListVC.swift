@@ -9,18 +9,13 @@
 import UIKit
 
 protocol IProductsListVC: class {
-  func show(products: [Product])
+  func showProducts()
   func show(error: String)
 }
 
 class ProductsListVC: BaseVC {
   private var vm: IProductsListVM = ProductsListVM()
   private var productsList: UICollectionView!
-  private var products = [Product]() {
-    didSet {
-      productsList.reloadData()
-    }
-  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -56,20 +51,20 @@ class ProductsListVC: BaseVC {
 
 extension ProductsListVC: UICollectionViewDataSource, UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    products.count
+    vm.productsCount
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductsListCVC.reuseID, for: indexPath) as? ProductsListCVC else {
       fatalError()
     }
-    cell.onBind(products[indexPath.item])
+    cell.onBind(vm.product(for: indexPath.item))
     return cell
   }
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     collectionView.deselectItem(at: indexPath, animated: true)
-    show(ProductsDetailsVC(products[indexPath.item]), sender: self)
+    show(ProductsDetailsVC(vm.product(for: indexPath.item)), sender: self)
   }
 }
 
@@ -78,7 +73,7 @@ extension ProductsListVC: IProductsListVC {
     showErrorAlert(error)
   }
   
-  func show(products: [Product]) {
-    self.products = products
+  func showProducts() {
+    productsList.reloadData()
   }
 }

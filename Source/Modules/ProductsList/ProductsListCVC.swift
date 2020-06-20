@@ -16,6 +16,8 @@ class ProductsListCVC: UICollectionViewCell {
   private var titleLabel: UILabel!
   private var imageView: UIImageView!
   
+  private var removedConstraints = false
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupViews()
@@ -30,10 +32,10 @@ class ProductsListCVC: UICollectionViewCell {
   }
   
   private func setupViews() {
-    
     imageView = UIImageView()
     imageView.contentMode = .scaleAspectFill
     imageView.clipsToBounds = true
+    imageView.layer.cornerRadius = 5
     contentView.addSubview(imageView)
     
     imageView.snp.makeConstraints { (maker) in
