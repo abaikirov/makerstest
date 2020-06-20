@@ -8,7 +8,13 @@
 
 import UIKit
 
-class ProductsListVC: UIViewController {
+protocol IProductsListVC: class {
+  func show(products: [Product])
+  func show(error: String)
+}
+
+class ProductsListVC: BaseVC {
+  private var vm: IProductsListVM = ProductsListVM()
   private var productsList: UICollectionView!
   private var products = [Product]() {
     didSet {
@@ -18,6 +24,7 @@ class ProductsListVC: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    vm.productsListVC = self
     setupViews()
     fetchProducts()
   }
@@ -32,18 +39,18 @@ class ProductsListVC: UIViewController {
     productsList.snp.makeConstraints { (maker) in
       maker.edges.equalTo(view.safeAreaLayoutGuide.snp.edges)
     }
+    
+    navigationItem.title = "Products"
+    navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Filter", style: .plain, target: self, action: #selector(onFilter))
   }
   
   private func fetchProducts() {
-    let networkManager: INetworkManager = NetworkManager()
-    networkManager.fetchProducts { (result) in
-      switch result {
-      case .success(let products):
-        self.products = products
-      case .failure(let error):
-        print(error)
-      }
-    }
+    vm.fetchProducts()
+  }
+  
+  @objc private func onFilter() {
+    let filterVC = FilterVC(vm: vm as! IFilterVM)
+    present(filterVC, animated: true, completion: nil)
   }
 }
 
@@ -63,5 +70,15 @@ extension ProductsListVC: UICollectionViewDataSource, UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     collectionView.deselectItem(at: indexPath, animated: true)
     show(ProductsDetailsVC(products[indexPath.item]), sender: self)
+  }
+}
+
+extension ProductsListVC: IProductsListVC {
+  func show(error: String) {
+    showErrorAlert(error)
+  }
+  
+  func show(products: [Product]) {
+    self.products = products
   }
 }

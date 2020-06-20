@@ -13,7 +13,6 @@ class DoubleColumnLayout: UICollectionViewFlowLayout {
     super.prepare()
     self.minimumInteritemSpacing = Constants.offset
     self.itemSize = CGSize(width: Constants.cellWidth, height: 150)
-//    self.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
     self.sectionInset = UIEdgeInsets(top: Constants.offset, left: Constants.offset, bottom: Constants.offset, right: Constants.offset)
     self.sectionInsetReference = .fromSafeArea
   }

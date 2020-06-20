@@ -52,13 +52,6 @@ class ProductsListCVC: UICollectionViewCell {
   
   public func onBind(_ product: Product) {
     titleLabel.text = product.name
-    imageView.kf.setImage(with: URL(string: product.img)) { (result) in
-      switch result {
-      case .success(let imageResult):
-        break
-      case .failure(let error):
-        break
-      }
-    }
+    imageView.kf.setImage(with: URL(string: product.img))
   }
 }
